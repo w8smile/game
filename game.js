@@ -96,3 +96,7 @@ class NumberUtil {
     return Math.floor(Math.random() * max + 1);
   }
 }
+class NumberUtil1 {
+
+
+}
