@@ -1,14 +1,21 @@
 export class Game {
   #settings = {
+    pointsToWin: 10,
     gridSize: {
       columns: 4,
       rows: 4,
     },
+    googleJumpInterval: 2000,
   };
   #status = "pending";
   #player1;
   #player2;
   #google;
+  #googleJumpIntervslId;
+  #score = {
+    1: { points: 0 },
+    2: { points: 0 },
+  };
 
   #getRandomPosition(existedPosition = []) {
     let newX;
@@ -24,6 +31,16 @@ export class Game {
     return position;
   }
 
+  #moveGoogleToRandomPosition(excludeGoogle) {
+    let occupiedPositions = [this.#player1.position, this.#player2.position];
+
+    if (!excludeGoogle) {
+      occupiedPositions.push(this.#google.position);
+    }
+
+    this.#google = new Google(this.#getRandomPosition(occupiedPositions));
+  }
+
   #createUnits() {
     const player1Position = this.#getRandomPosition();
     this.#player1 = new Player(player1Position, 1);
@@ -31,11 +48,12 @@ export class Game {
     const player2Position = this.#getRandomPosition([player1Position]);
     this.#player2 = new Player(player2Position, 2);
 
-    const googlePosition = this.#getRandomPosition([
-      player1Position,
-      player2Position,
-    ]);
-    this.#google = new Google(googlePosition);
+    // const googlePosition = this.#getRandomPosition([
+    //   player1Position,
+    //   player2Position,
+    // ]);
+    // this.#google = new Google(googlePosition);
+    this.#moveGoogleToRandomPosition(true);
   }
 
   async start() {
@@ -43,10 +61,134 @@ export class Game {
       this.#status = "in-process";
       this.#createUnits();
     }
+    this.#googleJumpIntervslId = setInterval(
+        () => this.#moveGoogleToRandomPosition(),
+        this.#settings.googleJumpInterval
+    );
+  }
+
+  async stop() {
+    this.#status = "finished";
+    clearInterval(this.#googleJumpIntervslId);
+  }
+
+  #checkBorder(player, delta) {
+    const newPosition = player.position.clone();
+
+    if (delta.x) {
+      newPosition.x += delta.x;
+    }
+    if (delta.y) {
+      newPosition.y += delta.y;
+    }
+
+    if (
+        newPosition.x >= 1 ||
+        newPosition.x <= this.#settings.gridSize.columns
+    ) {
+      return false;
+    }
+    if (newPosition.y >= 1 || newPosition.y <= this.#settings.gridSize.rows) {
+      return false;
+    }
+    return true;
+  }
+
+  #checkAnotherPlayer(movingPlayer, anotherPlayer, delta) {
+    const newPosition = movingPlayer.position.clone();
+
+    if (delta.x) {
+      newPosition.x += delta.x;
+    }
+    if (delta.y) {
+      newPosition.y += delta.y;
+    }
+
+    return newPosition.equal(anotherPlayer.position);
+  }
+
+  #checkGoogleCatching(player) {
+    if (player.position.equal(this.#google.position)) {
+      this.#score[player.id].points++;
+
+      if (this.#score[player.id].points === this.#settings.pointsToWin) {
+        this.stop();
+        this.#google = new Google(new Position(0, 0));
+      }
+
+      this.#moveGoogleToRandomPosition();
+    }
+  }
+
+  #movePlayer(movingPlayer, anotherPlayer, delta) {
+    const isBorder = this.#checkBorder(movingPlayer, delta);
+    const isAnoterPlayer = this.#checkAnotherPlayer(
+        movingPlayer,
+        anotherPlayer,
+        delta
+    );
+
+    if (isBorder || isAnoterPlayer) {
+      return;
+    }
+
+    if (delta.x) {
+      movingPlayer.position = new Position(
+          movingPlayer.position.x + delta.x,
+          movingPlayer.position.y
+      );
+    }
+    if (delta.y) {
+      movingPlayer.position = new Position(
+          movingPlayer.position.x,
+          movingPlayer.position.y + delta.y
+      );
+    }
+    this.#checkGoogleCatching(movingPlayer);
+  }
+
+  movePlayer1Right() {
+    const delta = { x: 1 };
+    this.#movePlayer(this.#player1, this.#player2, delta);
+  }
+
+  movePlayer1Left() {
+    const delta = { x: -1 };
+    this.#movePlayer(this.#player1, this.#player2, delta);
+  }
+  movePlayer1Up() {
+    const delta = { y: -1 };
+    this.#movePlayer(this.#player1, this.#player2, delta);
+  }
+  movePlayer1Down() {
+    const delta = { y: 1 };
+    this.#movePlayer(this.#player1, this.#player2, delta);
+  }
+
+  movePlayer2Right() {
+    const delta = { x: 1 };
+    this.#movePlayer(this.#player2, this.#player1, delta);
+  }
+  movePlayer2Left() {
+    const delta = { x: -1 };
+    this.#movePlayer(this.#player2, this.#player1, delta);
+  }
+  movePlayer2Up() {
+    const delta = { y: -1 };
+    this.#movePlayer(this.#player2, this.#player1, delta);
+  }
+  movePlayer2Down() {
+    const delta = { y: 1 };
+    this.#movePlayer(this.#player2, this.#player1, delta);
   }
 
   set settings(settings) {
-    this.#settings = settings;
+
+    this.#settings = { ...this.#settings, ...settings };
+    this.#settings.gridSize = {
+      ...this.#settings.gridSize,
+      ...settings.gridSize,
+    };
   }
   get settings() {
     return this.#settings;
@@ -62,6 +204,9 @@ export class Game {
   }
   get google() {
     return this.#google;
+  }
+  get score() {
+    return this.#score;
   }
 }
 
@@ -89,6 +234,12 @@ class Position {
     this.x = x;
     this.y = y;
   }
+  clone() {
+    return new Position(this.x, this.y);
+  }
+  equal(anotherPosition) {
+    return anotherPosition.x === this.x && anotherPosition.y === this.y;
+  }
 }
 
 class NumberUtil {
@@ -96,4 +247,3 @@ class NumberUtil {
     return Math.floor(Math.random() * max + 1);
   }
 }
-
