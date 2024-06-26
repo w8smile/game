@@ -62,8 +62,8 @@ export class Game {
       this.#createUnits();
     }
     this.#googleJumpIntervslId = setInterval(
-        () => this.#moveGoogleToRandomPosition(),
-        this.#settings.googleJumpInterval
+      () => this.#moveGoogleToRandomPosition(),
+      this.#settings.googleJumpInterval
     );
   }
 
@@ -83,8 +83,8 @@ export class Game {
     }
 
     if (
-        newPosition.x >= 1 ||
-        newPosition.x <= this.#settings.gridSize.columns
+      newPosition.x >= 1 ||
+      newPosition.x <= this.#settings.gridSize.columns
     ) {
       return false;
     }
@@ -123,9 +123,9 @@ export class Game {
   #movePlayer(movingPlayer, anotherPlayer, delta) {
     const isBorder = this.#checkBorder(movingPlayer, delta);
     const isAnoterPlayer = this.#checkAnotherPlayer(
-        movingPlayer,
-        anotherPlayer,
-        delta
+      movingPlayer,
+      anotherPlayer,
+      delta
     );
 
     if (isBorder || isAnoterPlayer) {
@@ -134,14 +134,14 @@ export class Game {
 
     if (delta.x) {
       movingPlayer.position = new Position(
-          movingPlayer.position.x + delta.x,
-          movingPlayer.position.y
+        movingPlayer.position.x + delta.x,
+        movingPlayer.position.y
       );
     }
     if (delta.y) {
       movingPlayer.position = new Position(
-          movingPlayer.position.x,
-          movingPlayer.position.y + delta.y
+        movingPlayer.position.x,
+        movingPlayer.position.y + delta.y
       );
     }
     this.#checkGoogleCatching(movingPlayer);
@@ -183,7 +183,7 @@ export class Game {
   }
 
   set settings(settings) {
-
+    // this.#settings = settings;
     this.#settings = { ...this.#settings, ...settings };
     this.#settings.gridSize = {
       ...this.#settings.gridSize,

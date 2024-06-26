@@ -61,12 +61,12 @@ describe("game tests", () => {
       expect([1, 2, 3]).toContain(game.player2.position.y);
 
       expect(
-          (game.player1.position.x !== game.player2.position.x ||
-              game.player1.position.y !== game.player2.position.y) &&
+        (game.player1.position.x !== game.player2.position.x ||
+          game.player1.position.y !== game.player2.position.y) &&
           (game.player1.position.x !== game.google.position.x ||
-              game.player1.position.y !== game.google.position.y) &&
+            game.player1.position.y !== game.google.position.y) &&
           (game.player2.position.x !== game.google.position.x ||
-              game.player2.position.y !== game.google.position.y)
+            game.player2.position.y !== game.google.position.y)
       ).toBe(true);
     }
   });
@@ -112,7 +112,7 @@ describe("game tests", () => {
 
       if (Math.abs(deltaForPlayer1) === 2) {
         const deltaForPlayer2 =
-                  game.google.position.x - game.player2.position.x;
+          game.google.position.x - game.player2.position.x;
         if (deltaForPlayer2 > 0) {
           game.movePlayer2Right();
         } else {
@@ -159,7 +159,7 @@ describe("game tests", () => {
 
       if (Math.abs(deltaForPlayer1) === 2) {
         const deltaForPlayer2 =
-                  game.google.position.y - game.player2.position.y;
+          game.google.position.y - game.player2.position.y;
         if (deltaForPlayer2 > 0) game.movePlayer2Down();
         else game.movePlayer2Up();
 
@@ -230,6 +230,6 @@ describe("game tests", () => {
 });
 
 const delay = (ms) =>
-    new Promise((res) => {
-      setTimeout(res, ms);
-    });
+  new Promise((res) => {
+    setTimeout(res, ms);
+  });
