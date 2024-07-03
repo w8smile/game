@@ -60,21 +60,25 @@ export class Game {
     // this.#google = new Google(googlePosition);
     this.#moveGoogleToRandomPosition(true);
   }
+  #startGoogleJumpInterval() {
+    this.#googleJumpIntervslId = setInterval(
+        ()=> this.#moveGoogleToRandomPosition(),
+        this.#settings.googleJumpInterval
+    )
+  }
 
   async start() {
     if (this.#status === "pending") {
       this.#status = "in-process";
       this.#createUnits();
     }
-    this.#googleJumpIntervslId = setInterval(
-      () => this.#moveGoogleToRandomPosition(),
-      this.#settings.googleJumpInterval
-    );
+    this.#startGoogleJumpInterval();
   }
 
   async stop() {
     this.#status = "finished";
     clearInterval(this.#googleJumpIntervslId);
+
   }
 
   #checkBorder(player, delta) {
@@ -88,15 +92,15 @@ export class Game {
     }
 
     if (
-      newPosition.x >= 1 ||
-      newPosition.x <= this.#settings.gridSize.columns
+      newPosition.x < 1 ||
+      newPosition.x > this.#settings.gridSize.columns
     ) {
-      return false;
+      return true;
     }
-    if (newPosition.y >= 1 || newPosition.y <= this.#settings.gridSize.rows) {
-      return false;
+    if (newPosition.y < 1 || newPosition.y > this.#settings.gridSize.rows) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   #checkAnotherPlayer(movingPlayer, anotherPlayer, delta) {
@@ -119,9 +123,11 @@ export class Game {
       if (this.#score[player.id].points === this.#settings.pointsToWin) {
         this.stop();
         this.#google = new Google(new Position(0, 0));
+        return
       }
-
       this.#moveGoogleToRandomPosition();
+      clearInterval(this.#googleJumpIntervslId);
+      this.#startGoogleJumpInterval()
     }
   }
 
@@ -149,8 +155,9 @@ export class Game {
         movingPlayer.position.y + delta.y
       );
     }
-    this.eventEmitter.emit('changePosition')
     this.#checkGoogleCatching(movingPlayer);
+    this.eventEmitter.emit('changePosition')
+
   }
 
   movePlayer1Right() {
