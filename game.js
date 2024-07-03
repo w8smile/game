@@ -17,6 +17,10 @@ export class Game {
     2: { points: 0 },
   };
 
+  constructor(eventEmitter, data = null) {
+    this.eventEmitter = eventEmitter;
+  }
+
   #getRandomPosition(existedPosition = []) {
     let newX;
     let newY;
@@ -39,6 +43,7 @@ export class Game {
     }
 
     this.#google = new Google(this.#getRandomPosition(occupiedPositions));
+    this.eventEmitter.emit('changePosition')
   }
 
   #createUnits() {
@@ -144,6 +149,7 @@ export class Game {
         movingPlayer.position.y + delta.y
       );
     }
+    this.eventEmitter.emit('changePosition')
     this.#checkGoogleCatching(movingPlayer);
   }
 
@@ -209,6 +215,8 @@ export class Game {
     return this.#score;
   }
 }
+
+
 
 class Unit {
   constructor(position) {
